@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class Manager extends Thread {
+public class Manager {
    private List<Employee> employees;
    private List<Task> tasks;
    private Excel excel;
@@ -14,25 +14,35 @@ public class Manager extends Thread {
        excel = new Excel();
    }
 
-   public void loadExcelData() throws IOException {
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public Excel getExcel() {
+        return excel;
+    }
+
+    public void loadExcelData() throws IOException {
        excel.loadData(employees, tasks);
    }
 
-   public void addEmployee(String name, int workTime) {
-       Employee employee = new Employee(name, workTime);
+   public void addEmployee(String name, int workTime) throws IOException {
+       Employee employee = Employee.newEmployee(name, workTime);
        employees.add(employee);
+       getExcel().updateFile(name, workTime, null, 0, 0);
    }
 
-   public void addTask(int taskId, String taskName, int totalHours) {
-       Task task = new Task(taskId, taskName, totalHours);
+   public void addTask(int taskId, String taskName, int totalHours) throws IOException {
+       Task task = Task.newTask(taskId, taskName, totalHours);
        tasks.add(task);
+       getExcel().updateFile(null, 0, taskName, taskId, totalHours);
    }
 
    //назначаем задачу сотруднику
    public void assignTask() {
        Random random = new Random();
        for (Task task : tasks) {
-           if (!employees.isEmpty()) {
+           if (!employees.isEmpty() && task.getRemHours() > 0) {
                Employee employee = employees.get(random.nextInt(employees.size()));
                task.setResponsibleEmployee(employee);
                employee.addTask(task);
@@ -53,7 +63,16 @@ public class Manager extends Thread {
        }
    }
 
-   public void saveStat() throws IOException {
-       excel.makeStatistics(employees, tasks);
+   public void saveStat(int day) throws IOException {
+       excel.makeStatistics(employees, tasks, day);
+   }
+
+   public boolean taskComp() {
+       for (Task task : tasks) {
+           if (task.getRemHours() > 0) {
+               return false;
+           }
+       }
+       return true;
    }
 }

@@ -45,6 +45,14 @@ public class Employee {
     }
 
     public double getEfficiency() {
-        return ((double) workHours / (workHours + restHours)) * 100;
+        return Math.round(((double) workHours / (workHours + restHours)) * 100);
+    }
+
+    public static Employee newEmployee(String name, int time) {
+        if (time <= 0 || time > 8) {
+            throw new IllegalArgumentException("Ошибка: длительность рабочего дня не может превышать 8 часов или быть отрицательной");
+        } else {
+          return new Employee(name, time);
+        }
     }
 }

@@ -9,8 +9,8 @@ public class TaskThread  implements Runnable{
 
     @Override
     public void run() {
-        int maxHours = employee.getWorkTime();
-        int workTime = 0;
+        int maxHours = employee.getWorkTime(); //длительность рабочего дня сотрудника
+        int workTime = 0; //рабочие часы
         for (Task task : employee.getTasks()) {
             while (task.getRemHours() > 0 && workTime < maxHours) {
                 int taskTime = Math.min(task.getRemHours(), maxHours - workTime);

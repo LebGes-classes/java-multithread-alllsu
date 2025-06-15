@@ -30,8 +30,8 @@ public class Task {
     }
 
     public static Task newTask(int taskId, String taskName, int totalHours) {
-        if (totalHours <= 0) {
-            throw new IllegalArgumentException();
+        if (totalHours <= 0 || totalHours > 16) {
+            throw new IllegalArgumentException("Ошибка: длительность задачи должна быть от 0 до 16 часов");
         }
         return new Task(taskId, taskName, totalHours);
     }

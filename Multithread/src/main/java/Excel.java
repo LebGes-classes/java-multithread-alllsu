@@ -5,7 +5,7 @@ import java.util.*;
 
 public class Excel {
     public static final String INPUT_FILE = "C:\\Users\\user\\Documents\\Homework\\Multithread\\Input.xlsx";
-    public static final String OUTPUT_FILE = "C:\\Users\\user\\Documents\\Homework\\Multithread\\Output.xlsx";
+    public static final String OUTPUT_FILE = "C:\\Users\\user\\Documents\\Homework\\Multithread\\Output day%d.xlsx";
 
     public void loadData(List<Employee> employees, List<Task> tasks) throws IOException {
         try (FileInputStream fis = new FileInputStream(INPUT_FILE);
@@ -14,14 +14,14 @@ public class Excel {
             Map<Integer, Task> taskMap = new HashMap<>();
             Sheet taskSheet = workbook.getSheet("Task");
             if (taskSheet == null) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Лист Task не найден");
             }
             for (Row row : taskSheet) {
                 if (row.getRowNum() == 0) continue; //пропускаем заголовки
                 int id = (int) row.getCell(0).getNumericCellValue();
                 String name = row.getCell(1).getStringCellValue();
                 int totalHours = (int) row.getCell(2).getNumericCellValue();
-                Task task = new Task(id, name, totalHours);
+                Task task = Task.newTask(id, name, totalHours);
                 taskMap.put(id, task);
                 tasks.add(task);
             }
@@ -30,7 +30,7 @@ public class Excel {
             Map<String, Employee> employeeMap = new HashMap<>();
             Sheet employeeSheet = workbook.getSheet("Employee");
             if (employeeSheet == null) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Лист Employee не найден");
             }
             for (Row row : employeeSheet) {
                 if (row.getRowNum() == 0) continue; //пропускаем заголовки
@@ -44,12 +44,11 @@ public class Excel {
                     employees.add(employee);
                     employeeMap.put(name, employee);
                 }
-                tasks.addAll(taskMap.values());
             }
         }
     }
 
-    public void makeStatistics(List<Employee> employees, List<Task> tasks) throws IOException {
+    public void makeStatistics(List<Employee> employees, List<Task> tasks, int day) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet statSheet = workbook.createSheet("Statistics");
 
@@ -79,9 +78,35 @@ public class Excel {
                 row.createCell(0).setCellValue(tasks.get(i).getTaskId());
                 row.createCell(1).setCellValue(tasks.get(i).getRemHours());
             }
-            try (FileOutputStream fos = new FileOutputStream(OUTPUT_FILE)) {
+            try (FileOutputStream fos = new FileOutputStream(String.format(OUTPUT_FILE, day))) {
                 workbook.write(fos);
             }
         }
+    }
+    public void updateFile(String empName, int workTime, String taskName, int taskId, int taskHours) throws IOException {
+        try(FileInputStream fis = new FileInputStream(INPUT_FILE);
+        Workbook workbook = new XSSFWorkbook(fis)) {
+            if (empName != null && workTime > 0 && workTime <= 8) {
+                Sheet empSheet = workbook.getSheet("Employee");
+                int lastRow = empSheet.getLastRowNum();
+                Row newRow = empSheet.createRow(lastRow + 1);
+                newRow.createCell(0).setCellValue(empName);
+                newRow.createCell(1).setCellValue(workTime);
+            }
+            if (taskName != null && taskId > 0 && taskHours > 0 && taskHours <= 12) {
+                Sheet taskSheet = workbook.getSheet("Task");
+                int lastRow = taskSheet.getLastRowNum();
+                Row newRow = taskSheet.createRow(lastRow + 1);
+                newRow.createCell(0).setCellValue(taskId);
+                newRow.createCell(1).setCellValue(taskName);
+                newRow.createCell(2).setCellValue(taskHours);
+            }
+
+            try (FileOutputStream fos = new FileOutputStream(INPUT_FILE)) {
+                workbook.write(fos);
+            }
+        }
+
+
     }
 }
